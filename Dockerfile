@@ -10,6 +10,7 @@ RUN mkdir /src
 # install system dependencies
 RUN apt-get update --yes
 RUN apt-get install build-essential --yes
+RUN apt-get install libblas-dev --yes
 RUN apt-get install libcurl4-gnutls-dev --yes
 RUN apt-get install libhdf5-serial-dev --yes
 # RUN apt-get install libigraph0-dev --yes #This should install automatically with python-igraph as the repo version fails
