@@ -96,7 +96,7 @@ def main():
         edge_width_scale=1,
         max_edge_width=4,
         title="directed PAGA",
-        save=options.output + "_CellRank_" + cluster_out + "_directed_paga." + options.plot)
+        save=options.output + "_CellRank_" + cluster_out + "_fates_directed_paga." + options.plot)
     )
 
 if __name__ == '__main__':
