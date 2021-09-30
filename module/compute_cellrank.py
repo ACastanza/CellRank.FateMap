@@ -55,7 +55,7 @@ def main():
                 cluster_out = "leiden_clusters"
 
     cr.tl.terminal_states(adata, cluster_key=cluster_type, weight_connectivities=0.2)
-    cr.pl.terminal_states(adata, save=, save=options.output + "_batch_" + i + "_velocity_embeddings." + options.plot)
+    cr.pl.terminal_states(adata, save=, save=options.output + "_CellRank_FateMap." + options.plot)
 
 if __name__ == '__main__':
     main()
