@@ -48,7 +48,7 @@ RUN pip install pybind11==2.6.2
 RUN pip install hnswlib==0.5.2
 RUN pip install leidenalg==0.8.7
 RUN pip install mpi4py==3.1.1
-RUN pip install petsc==3.15.5
+RUN pip install petsc==3.15.4
 RUN pip install petsc4py==3.15.1
 RUN pip install slepc==3.15.2
 RUN pip install slepc4py==3.15.1
