@@ -18,6 +18,7 @@ RUN apt-get install libtool --yes
 RUN apt-get install flex bison --yes
 RUN apt-get install libopenmpi-dev --yes
 RUN apt-get install libblas-dev --yes
+RUN apt-get install liblapack-dev --yes
 RUN apt-get install valgrind --yes
 
 # install python with conda
