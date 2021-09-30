@@ -82,7 +82,7 @@ def main():
         groups=cluster_type,
         root_key="initial_states_probs",
         end_key="terminal_states_probs",
-        use_time_prior="velocity_pseudotime",
+        use_time_prior="velocity_pseudotime"
     )
 
     cr.pl.cluster_fates(
@@ -96,7 +96,7 @@ def main():
         edge_width_scale=1,
         max_edge_width=4,
         title="directed PAGA",
-        save=options.output + "_CellRank_" + cluster_out + "_fates_directed_paga." + options.plot)
+        save=options.output + "_CellRank_" + cluster_out + "_fates_directed_paga." + options.plot
     )
 
 if __name__ == '__main__':
