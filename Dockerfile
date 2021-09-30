@@ -17,7 +17,7 @@ RUN apt-get install libxml2-dev --yes
 RUN apt-get install libtool --yes
 RUN apt-get install flex bison --yes
 RUN apt-get install libopenmpi-dev --yes
-RUN apt-get install valgrind-devel --yes
+RUN apt-get install valgrind --yes
 
 # install python with conda
 RUN mkdir /conda && \
