@@ -42,23 +42,33 @@ def main():
     if "clusters" in list(adata.obs):
         cluster_type = "clusters"
         cluster_out = "dataset_clusters"
-        print("Found 'clusters' key in dataset. We'll use this for plots and any differential kinetics.\n")
+        print(
+            "Found 'clusters' key in dataset. We'll use this for plots and any differential kinetics.\n")
     elif "clusters" not in list(adata.obs):
         if "leiden" in list(adata.obs):
             cluster_type = "leiden"
             cluster_out = "leiden_clusters"
-            print("Found 'leiden' clustering in dataset. We'll use this for plots and any differential kinetics.\n")
+            print(
+                "Found 'leiden' clustering in dataset. We'll use this for plots and any differential kinetics.\n")
         elif "leiden" not in list(adata.obs):
-            if "walktrap" in list(adata.obs):
-                cluster_type = "walktrap"
-                cluster_out = "walktrap_clusters"
+            if "louvain" in list(adata.obs):
+                cluster_type = "louvain"
+                cluster_out = "louvain_clusters"
                 print(
-                    "Found 'walktrap' clustering in dataset. We'll use this for plots and any differential kinetics.\n")
-            else:
-                print("Didn't find any clustering in dataset, clustering data using method: 'leiden'.\nWe'll use this for plots and any differential kinetics.\n")
-                sc.tl.leiden(adata)
-                cluster_type = "leiden"
-                cluster_out = "leiden_clusters"
+                    "Found 'louvain' clustering in dataset. We'll use this for plots and any differential kinetics.\n")
+            elif "louvain" not in list(adata.obs):
+                if "walktrap" in list(adata.obs):
+                    cluster_type = "walktrap"
+                    cluster_out = "walktrap_clusters"
+                    print(
+                        "Found 'walktrap' clustering in dataset. We'll use this for plots and any differential kinetics.\n")
+                else:
+                    print(
+                        "Didn't find any clustering in dataset, clustering data using method: 'leiden'.\nWe'll use this for plots and any differential kinetics.\n")
+                    sc.tl.leiden(adata, resolution=float(
+                        options.resolution))
+                    cluster_type = "leiden"
+                    cluster_out = "leiden_clusters"
 
     cr.tl.terminal_states(adata, cluster_key=cluster_type,
                           weight_connectivities=0.2)
