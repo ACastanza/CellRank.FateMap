@@ -83,18 +83,18 @@ def main():
     cr.tl.terminal_states(adata, cluster_key=cluster_type,
                           weight_connectivities=0.2)
     cr.pl.terminal_states(adata, save=options.output + "_CellRank_terminal_states_by_" +
-                  cluster_out + "." + options.plot)
+                          cluster_out + "." + options.plot)
 
     cr.tl.initial_states(adata, cluster_key=cluster_type)
     cr.pl.initial_states(adata, discrete=True, save=options.output + "_CellRank_initial_states_by_" +
-                  cluster_out + "." + options.plot)
+                         cluster_out + "." + options.plot)
 
     cr.tl.lineages(adata)
     cr.pl.lineages(adata, same_plot=False, save=options.output + "_CellRank_lineages_by_" +
-                  cluster_out + "." + options.plot)
+                   cluster_out + "." + options.plot)
 
     scv.tl.recover_latent_time(
-    adata, root_key="initial_states_probs", end_key="terminal_states_probs"
+        adata, root_key="initial_states_probs", end_key="terminal_states_probs"
     )
 
     scv.tl.paga(
@@ -116,8 +116,10 @@ def main():
         edge_width_scale=1,
         max_edge_width=4,
         title="directed PAGA",
-        save=options.output + "_CellRank_" + cluster_out + "_fates_directed_paga." + options.plot
+        save=options.output + "_CellRank_" + cluster_out +
+        "_fates_directed_paga." + options.plot
     )
+
 
 if __name__ == '__main__':
     main()
