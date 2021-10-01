@@ -55,7 +55,7 @@ RUN pip install leidenalg==0.8.7
 # RUN pip install petsc4py==3.15.1 ## Not preinstallable
 # RUN pip install slepc==3.15.2 ## Not preinstallable
 # RUN pip install slepc4py==3.15.1 ## Not preinstallable
-RUN pip install cellrank==1.5.0 
+RUN pip install cellrank==1.5.0
 RUN pip install 'cellrank[krylov]'
 
 # copy module files
