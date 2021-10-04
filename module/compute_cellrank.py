@@ -46,25 +46,25 @@ def main():
     if options.clustering == "autodetect_existing":
         if "clusters" in list(adata.obs):
             cluster_type = "clusters"
-            cluster_out = "dataset_clusters"
+            cluster_out = "dataset_cluster"
             print(
                 "Found 'clusters' key in dataset. We'll use this for plots and any differential kinetics.\n")
         elif "clusters" not in list(adata.obs):
             if "leiden" in list(adata.obs):
                 cluster_type = "leiden"
-                cluster_out = "leiden_clusters"
+                cluster_out = "leiden_cluster"
                 print(
                     "Found 'leiden' clustering in dataset. We'll use this for plots and any differential kinetics.\n")
             elif "leiden" not in list(adata.obs):
                 if "louvain" in list(adata.obs):
                     cluster_type = "louvain"
-                    cluster_out = "louvain_clusters"
+                    cluster_out = "louvain_cluster"
                     print(
                         "Found 'louvain' clustering in dataset. We'll use this for plots and any differential kinetics.\n")
                 elif "louvain" not in list(adata.obs):
                     if "walktrap" in list(adata.obs):
                         cluster_type = "walktrap"
-                        cluster_out = "walktrap_clusters"
+                        cluster_out = "walktrap_cluster"
                         print(
                             "Found 'walktrap' clustering in dataset. We'll use this for plots and any differential kinetics.\n")
                     else:
