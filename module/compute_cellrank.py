@@ -80,18 +80,102 @@ def main():
         cluster_type = options.clustering
         cluster_out = options.clustering + "_clusters"
 
-    cr.tl.terminal_states(adata, cluster_key=cluster_type,
-                          weight_connectivities=0.2)
-    cr.pl.terminal_states(adata, save=options.output + "_CellRank_terminal_states_by_" +
-                          cluster_out + "." + options.plot)
+# ## Old Method
+#     cr.tl.terminal_states(adata, cluster_key=cluster_type,
+#                           weight_connectivities=0.2)
+#     cr.pl.terminal_states(adata, save=options.output + "_CellRank_terminal_states_by_" +
+#                           cluster_out + "." + options.plot)
+# 
+#     cr.tl.initial_states(adata, cluster_key=cluster_type)
+#     cr.pl.initial_states(adata, discrete=True, save=options.output + "_CellRank_initial_states_by_" +
+#                          cluster_out + "." + options.plot)
+# 
+#     cr.tl.lineages(adata)
+#     cr.pl.lineages(adata, same_plot=False, save=options.output + "_CellRank_lineages_by_" +
+#                    cluster_out + "." + options.plot)
+# 
+#     scv.tl.recover_latent_time(
+#         adata, root_key="initial_states_probs", end_key="terminal_states_probs"
+#     )
+# 
+#     scv.tl.paga(
+#         adata,
+#         groups=cluster_type,
+#         root_key="initial_states_probs",
+#         end_key="terminal_states_probs",
+#         use_time_prior="velocity_pseudotime"
+#     )
+# 
+#     cr.pl.cluster_fates(
+#         adata,
+#         mode="paga_pie",
+#         cluster_key=cluster_type,
+#         basis="umap",
+#         legend_kwargs={"loc": "top right out"},
+#         legend_loc="top left out",
+#         node_size_scale=5,
+#         edge_width_scale=1,
+#         max_edge_width=4,
+#         title="directed PAGA",
+#         save=options.output + "_CellRank_" + cluster_out +
+#         "_fates_directed_paga." + options.plot
+#     )
 
-    cr.tl.initial_states(adata, cluster_key=cluster_type)
-    cr.pl.initial_states(adata, discrete=True, save=options.output + "_CellRank_initial_states_by_" +
-                         cluster_out + "." + options.plot)
+# Kernel Based Method
 
-    cr.tl.lineages(adata)
-    cr.pl.lineages(adata, same_plot=False, save=options.output + "_CellRank_lineages_by_" +
+    # User Kernel Based methods to Calculate the Terminal States
+
+    # Compute VelocityKernel based Transition Matrix
+    from cellrank.tl.kernels import VelocityKernel
+    vk = VelocityKernel(adata).compute_transition_matrix()
+    vkr = VelocityKernel(adata, backward=True).compute_transition_matrix()
+
+    # Compute ConnectivityKernel based Transition Matrix
+    from cellrank.tl.kernels import ConnectivityKernel
+    ck = ConnectivityKernel(adata).compute_transition_matrix()
+    ckr = ConnectivityKernel(adata, backward=True).compute_transition_matrix()
+
+    # Weighted Combined Kernel
+    combined_kernel = 0.8 * vk + 0.2 * ck
+    combined_reverse_kernel = 0.8 * vkr + 0.2 * ckr
+
+    # Use an Estimator to find the cell states
+    from cellrank.tl.estimators import GPCCA
+    g = GPCCA(combined_kernel)
+    gr = GPCCA(combined_reverse_kernel)
+
+    # Compute Matrix Decomposition
+    g.compute_schur(n_components=20)
+    gr.compute_schur(n_components=20)
+    g.plot_spectrum(save=options.output + "_CellRank_Terminal_States_Kernel_Spectrum_by_" +
                    cluster_out + "." + options.plot)
+    gr.plot_spectrum(save=options.output + "_CellRank_Initial_States_Kernel_Spectrum_by_" +
+                   cluster_out + "." + options.plot)
+
+    #Infer and Plot Terminal States
+    g.compute_macrostates(n_states=3, cluster_key=cluster_type)
+    gr.compute_macrostates(n_states=3, cluster_key=cluster_type)
+    g.plot_macrostates(save=options.output + "_CellRank_Terminal_States_Kernel_Macrostates_by_" +
+                   cluster_out + "." + options.plot)
+    gr.plot_macrostates(save=options.output + "_CellRank_Initial_States_Kernel_Macrostates_by_" +
+                   cluster_out + "." + options.plot)
+    # g.plot_macrostates(same_plot=False)
+    # gr.plot_macrostates(same_plot=False)
+    # g.plot_macrostates(discrete=True)
+    # gr.plot_macrostates(discrete=True)
+
+    # Add Kernel Estimated States to original adata object
+    adata.obs['terminal_states'] = g.obs['terminal_states'] 
+    adata.obs['terminal_states_probs'] = g.obs['terminal_states_probs']
+    adata.terminal_states = g.terminal_states
+    adata.terminal_states_probabilities = g.terminal_states_probabilities
+    adata.terminal_states_memberships = g.terminal_states_memberships
+
+    adata.obs['initial_states'] = gr.obs['initial_states']
+    adata.obs['initial_states_probs'] = gr.obs['initial_states_probs']
+    adata.initial_states = gr.initial_states
+    adata.initial_states_probabilities = gr.initial_states_probabilities
+    adata.initial_states_memberships = gr.initial_states_memberships
 
     scv.tl.recover_latent_time(
         adata, root_key="initial_states_probs", end_key="terminal_states_probs"
@@ -119,6 +203,9 @@ def main():
         save=options.output + "_CellRank_" + cluster_out +
         "_fates_directed_paga." + options.plot
     )
+
+    ad.AnnData.write(adata, compression="gzip",
+                     filename= options.output + "_cellrank_results.h5ad")
 
 
 if __name__ == '__main__':
