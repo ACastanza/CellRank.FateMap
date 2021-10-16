@@ -27,6 +27,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--input-file", action="store",
                     dest="input_file", help="Input h5ad (anndata) file from scVelo.")
+    ap.add_argument("-v", "--velocity_weight", default="1-connectivity_weight", action="store", dest="velocity_weight",
+                    help="Weighting factor to apply to the estimator for velocity derived transitions.")
+    ap.add_argument("-c", "--connectivity_weight", default="0", action="store", dest="connectivity_weight",
+                    help="Weighting factor to apply to the estimator for connectivity derived transitions.")
     ap.add_argument("-l", "--clustering", default="autodetect_existing", action="store", dest="clustering",
                     help="Some kinetics functions require the dataset to be clustered. Specify 'run_leiden' or 'run_louvain' to create a new clustering, or 'autodetect_existing' to attempt to detect previous clustering with a fallback to 'run_leiden'.")
     ap.add_argument("-r", "--resolution", default="1.0", action="store", dest="resolution",
@@ -122,27 +126,45 @@ def main():
 #     )
 
 # Kernel Based Method
+   connectivity_weight = eval(options.connectivity_weight)
+   velocity_weight = eval(options.velocity_weight)
+
+    weight_sum=float(connectivity_weight) + float(velocity_weight)
+    if float(weight_sum) != float(1):
+        print("Kernel Weights did not sum to 1, sum was: " + str(weight_sum) + ". " +  str(velocity_weight) + " from Velocity, and " + str(connectivity_weight) + " from Connectivity.")
+        exit(1)
 
     # User Kernel Based methods to Calculate the Terminal States
 
     # Compute VelocityKernel based Transition Matrix
-    from cellrank.tl.kernels import VelocityKernel
-    vk = VelocityKernel(adata).compute_transition_matrix()
-    vkr = VelocityKernel(adata, backward=True).compute_transition_matrix()
+    if float(velocity_weight) > float(0):
+        from cellrank.tl.kernels import VelocityKernel
+        vk = VelocityKernel(adata).compute_transition_matrix()
+        vkr = VelocityKernel(adata, backward=True).compute_transition_matrix()
 
     # Compute ConnectivityKernel based Transition Matrix
-    from cellrank.tl.kernels import ConnectivityKernel
-    ck = ConnectivityKernel(adata).compute_transition_matrix()
-    ckr = ConnectivityKernel(adata, backward=True).compute_transition_matrix()
+    if float(connectivity_weight) > float(0):
+        from cellrank.tl.kernels import ConnectivityKernel
+        ck = ConnectivityKernel(adata).compute_transition_matrix()
+        ckr = ConnectivityKernel(adata, backward=True).compute_transition_matrix()
 
     # Weighted Combined Kernel
-    combined_kernel = 0.8 * vk + 0.2 * ck
-    combined_reverse_kernel = 0.8 * vkr + 0.2 * ckr
-
+    if float(velocity_weight) > float(0) and float(connectivity_weight) > float(0):
+        kernel = float(velocity_weight) * vk + float(connectivity_weight) * ck
+        reverse_kernel = float(velocity_weight)* vkr + float(connectivity_weight) * ckr
+    elif float(velocity_weight) == float(1) and float(connectivity_weight) == float(0):
+        kernel = vk
+        reverse_kernel = vkr
+    elif float(connectivity_weight) == float(0) and float(connectivity_weight) == float(1):
+        kernel = ck
+        reverse_kernel = ckr
+    else:
+        exit("There was a problem with the kernel weights.")
+        
     # Use an Estimator to find the cell states
     from cellrank.tl.estimators import GPCCA
-    g = GPCCA(combined_kernel)
-    gr = GPCCA(combined_reverse_kernel)
+    g = GPCCA(kernel)
+    gr = GPCCA(reverse_kernel)
 
     # Compute Matrix Decomposition
     g.compute_schur(n_components=20)
@@ -164,13 +186,13 @@ def main():
     # g.plot_macrostates(discrete=True)
     # gr.plot_macrostates(discrete=True)
 
-    # Add Kernel Estimated States to original adata object
-    adata.obs['terminal_states'] = g.terminal_states_memberships
-    adata.obs['terminal_states_probs'] = g.terminal_states_probabilities
-
-    adata.obs['initial_states'] = gr.initial_states_memberships
-    adata.obs['initial_states_probs'] = gr.initial_states_probabilities
-
+    ## Add Kernel Estimated States to original adata object
+    # adata.obs['terminal_states'] = g.terminal_states_memberships
+    # adata.obs['terminal_states_probs'] = g.terminal_states_probabilities
+	# 
+    # adata.obs['initial_states'] = gr.initial_states_memberships
+    # adata.obs['initial_states_probs'] = gr.initial_states_probabilities
+	# 
     scv.tl.recover_latent_time(
         adata, root_key="initial_states_probs", end_key="terminal_states_probs"
     )
