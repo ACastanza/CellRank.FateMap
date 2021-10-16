@@ -165,17 +165,11 @@ def main():
     # gr.plot_macrostates(discrete=True)
 
     # Add Kernel Estimated States to original adata object
-    adata.obs['terminal_states'] = g.obs['terminal_states'] 
-    adata.obs['terminal_states_probs'] = g.obs['terminal_states_probs']
-    adata.terminal_states = g.terminal_states
-    adata.terminal_states_probabilities = g.terminal_states_probabilities
-    adata.terminal_states_memberships = g.terminal_states_memberships
+    adata.obs['terminal_states'] = g.terminal_states_memberships
+    adata.obs['terminal_states_probs'] = g.terminal_states_probabilities
 
-    adata.obs['initial_states'] = gr.obs['initial_states']
-    adata.obs['initial_states_probs'] = gr.obs['initial_states_probs']
-    adata.initial_states = gr.initial_states
-    adata.initial_states_probabilities = gr.initial_states_probabilities
-    adata.initial_states_memberships = gr.initial_states_memberships
+    adata.obs['initial_states'] = gr.initial_states_memberships
+    adata.obs['initial_states_probs'] = gr.initial_states_probabilities
 
     scv.tl.recover_latent_time(
         adata, root_key="initial_states_probs", end_key="terminal_states_probs"
